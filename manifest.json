@@ -1,0 +1,8 @@
+{
+  "name":"MotoGestor",
+  "short_name":"MotoGestor",
+  "start_url":"index.html",
+  "display":"standalone",
+  "background_color":"#ffffff",
+  "theme_color":"#6c4cff"
+}

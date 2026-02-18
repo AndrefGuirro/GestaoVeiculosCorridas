@@ -1,0 +1,30 @@
+body {
+  font-family: system-ui;
+  margin:0;
+  background:#f9fafb;
+}
+
+.card {
+  background:white;
+  border-radius:var(--radius);
+  padding:16px;
+  margin:12px;
+  box-shadow:0 4px 8px rgba(0,0,0,.05);
+}
+
+.bottom-nav {
+  position:fixed;
+  bottom:0;
+  width:100%;
+  display:flex;
+  justify-content:space-around;
+  background:white;
+  border-top:1px solid #ddd;
+}
+
+.bottom-nav button {
+  flex:1;
+  padding:14px;
+  border:none;
+  background:none;
+}
