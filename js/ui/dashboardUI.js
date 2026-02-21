@@ -1,13 +1,14 @@
-import {CorridaService} from "../services/corridaService.js"
-import {VeiculoService} from "../services/veiculoService.js"
+import { CorridaService } from "../services/corridaService.js"
+import { VeiculoService } from "../services/veiculoService.js"
 
-export function renderDashboard(container){
+export async function renderDashboard(container){
 
-  const corridas = CorridaService.listar()
-  const veiculos = VeiculoService.listar()
-  const ativo = veiculos.find(v=>v.ativo)
+  const corridas = await CorridaService.listar()
+  const veiculos = await VeiculoService.listar()
 
-  const totalMes = corridas.reduce((s,c)=>s+c.valor,0)
+  const ativo = veiculos.find(v => v.ativo)
+
+  const totalMes = corridas.reduce((s, c) => s + (c.valor || 0), 0)
 
   container.innerHTML = `
   

@@ -1,5 +1,5 @@
+import {initDB} from "./storage.js"
 import {renderDashboard} from "./ui/dashboardUI.js"
-// depois você vai importar os outros
 
 const app = document.getElementById("app")
 
@@ -24,11 +24,12 @@ const titles = {
   combustivel:"Combustível"
 }
 
-function navigate(page){
+async function navigate(page){
 
   if(!routes[page]) return
 
-  routes[page](app)
+  await routes[page](app)
+
   document.getElementById("page-title").innerText = titles[page]
 
   document.querySelectorAll("[data-page]")
@@ -36,5 +37,10 @@ function navigate(page){
       btn.classList.toggle("active", btn.dataset.page === page)
     })
 }
-
-navigate("dashboard")
+initDB()
+  .then(()=>{
+    navigate("dashboard")
+  })
+  .catch(err=>{
+    console.error(err)
+  })

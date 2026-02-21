@@ -1,30 +1,27 @@
-import {Storage} from "../storage.js"
-import {uuid} from "../utils.js"
+import { addData, getAll } from "../storage.js"
+import { uuid } from "../utils.js"
 
-const KEY="abastecimentos"
+const KEY = "abastecimentos"
 
-export const AbastecimentoService={
+export const AbastecimentoService = {
 
-  listar(){
-    return Storage.get(KEY)
+  async listar() {
+    return await getAll(KEY)
   },
 
-  criar({veiculoId,km,litros,valor,cheio}){
+  async criar({ veiculoId, km, litros, valor, cheio }) {
 
-    const lista=this.listar()
-
-    lista.push({
-      id:uuid(),
+    const abastecimento = {
+      id: uuid(),
       veiculoId,
       km,
       litros,
       valor,
       cheio,
-      data:new Date()
-    })
+      data: new Date()
+    }
 
-    Storage.save(KEY,lista)
-
+    await addData(KEY, abastecimento)
   }
 
 }

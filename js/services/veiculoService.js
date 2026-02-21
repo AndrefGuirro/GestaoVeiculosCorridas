@@ -1,44 +1,36 @@
-import {Storage} from "../storage.js"
+import {addData, getAll, updateData} from "../storage.js"
 import {uuid} from "../utils.js"
-import {AppState} from "../state.js"
 
-const KEY="veiculos"
+const STORE = "veiculos"
 
 export const VeiculoService = {
 
-  listar(){
-    return Storage.get(KEY)
+  async listar(){
+    return await getAll(STORE)
   },
 
-  criar(nome, consumo, combustivel){
+  async criar(nome, consumo, combustivel){
 
-    const lista = this.listar()
-
-    const veiculo={
-      id:uuid(),
+    const veiculo = {
+      id: uuid(),
       nome,
       consumo,
       combustivel,
-      kmAtual:0,
-      ativo:false
+      kmAtual: 0,
+      ativo: false
     }
 
-    lista.push(veiculo)
-    Storage.save(KEY, lista)
-
+    await addData(STORE, veiculo)
   },
 
-  ativar(id){
+  async ativar(id){
 
-    const lista=this.listar()
+    const lista = await this.listar()
 
-    lista.forEach(v=>{
-      v.ativo = v.id===id
-      if(v.ativo) AppState.veiculoAtivo=v
-    })
-
-    Storage.save(KEY,lista)
-
+    for(let v of lista){
+      v.ativo = v.id === id
+      await updateData(STORE, v)
+    }
   }
 
 }

@@ -1,40 +1,39 @@
-import {Storage} from "../storage.js"
-import {uuid} from "../utils.js"
+import { addData, getAll, updateData } from "../storage.js"
+import { uuid } from "../utils.js"
 
-const KEY="manutencoes"
+const KEY = "manutencoes"
 
-export const ManutencaoService={
+export const ManutencaoService = {
 
-  listar(){
-    return Storage.get(KEY)
+  async listar() {
+    return await getAll(KEY)
   },
 
-  criar(tipo,kmIntervalo,valor){
+  async criar(tipo, kmIntervalo, valor) {
 
-    const lista=this.listar()
-
-    lista.push({
-      id:uuid(),
+    const manutencao = {
+      id: uuid(),
       tipo,
       kmIntervalo,
       valor,
-      status:"pendente"
-    })
+      status: "pendente"
+    }
 
-    Storage.save(KEY,lista)
-
+    await addData(KEY, manutencao)
   },
 
-  marcarRealizada(id,kmAtual){
+  async marcarRealizada(id, kmAtual) {
 
-    const lista=this.listar()
-    const m = lista.find(x=>x.id===id)
+    const lista = await this.listar()
 
-    m.status="realizada"
-    m.kmReferencia=kmAtual
+    const m = lista.find(x => x.id === id)
 
-    Storage.save(KEY,lista)
+    if (!m) return
 
+    m.status = "realizada"
+    m.kmReferencia = kmAtual
+
+    await updateData(KEY, m)
   }
 
 }

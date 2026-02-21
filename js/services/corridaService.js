@@ -1,62 +1,66 @@
-import {Storage} from "../storage.js"
-import {uuid,hoje} from "../utils.js"
-import {AppState} from "../state.js"
-import {VeiculoService} from "./veiculoService.js"
+import { addData, getAll, updateData } from "../storage.js"
+import { uuid, hoje } from "../utils.js"
+import { AppState } from "../state.js"
+import { VeiculoService } from "./veiculoService.js"
 
-const KEY="corridas"
+const KEY = "corridas"
 
 export const CorridaService = {
 
-  listar(){
-    return Storage.get(KEY)
+  async listar() {
+    return await getAll(KEY)
   },
 
-  iniciar(kmInicial){
+  iniciar(kmInicial) {
 
-    AppState.corridaAtiva={
-      id:uuid(),
-      veiculoId:AppState.veiculoAtivo.id,
+    AppState.corridaAtiva = {
+      id: uuid(),
+      veiculoId: AppState.veiculoAtivo.id,
       kmInicial,
-      dataInicio:hoje()
+      dataInicio: hoje()
     }
 
-    localStorage.setItem("corridaAtiva",
+    localStorage.setItem(
+      "corridaAtiva",
       JSON.stringify(AppState.corridaAtiva)
     )
   },
 
-  finalizar(kmFinal,valor){
+  async finalizar(kmFinal, valor) {
 
     const corrida = JSON.parse(localStorage.getItem("corridaAtiva"))
 
-    if(kmFinal <= corrida.kmInicial)
+    if (!corrida) throw "Nenhuma corrida ativa"
+
+    if (kmFinal <= corrida.kmInicial)
       throw "KM inválido"
 
-    corrida.kmFinal=kmFinal
-    corrida.valor=valor
-    corrida.distancia=kmFinal-corrida.kmInicial
-    corrida.dataFim=hoje()
+    corrida.kmFinal = kmFinal
+    corrida.valor = valor
+    corrida.distancia = kmFinal - corrida.kmInicial
+    corrida.dataFim = hoje()
 
-    const lista=this.listar()
-    lista.push(corrida)
+    // 🔹 salva corrida no IndexedDB
+    await addData(KEY, corrida)
 
-    Storage.save(KEY,lista)
-
-    this.atualizarKmVeiculo(corrida)
+    // 🔹 atualiza km do veículo
+    await this.atualizarKmVeiculo(corrida)
 
     localStorage.removeItem("corridaAtiva")
-
   },
 
-  atualizarKmVeiculo(corrida){
+  async atualizarKmVeiculo(corrida) {
 
-    const lista=VeiculoService.listar()
+    const lista = await VeiculoService.listar()
 
-    const v = lista.find(v=>v.id===corrida.veiculoId)
+    const v = lista.find(v => v.id === corrida.veiculoId)
+
+    if (!v) return
+
     v.kmAtual = corrida.kmFinal
 
-    Storage.save("veiculos",lista)
-
+    // 🔹 usa updateData agora (não existe mais Storage.save)
+    await updateData("veiculos", v)
   }
 
 }
