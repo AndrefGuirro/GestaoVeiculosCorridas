@@ -40,7 +40,7 @@ export const CorridaService = {
     corrida.distancia = kmFinal - corrida.kmInicial
     corrida.dataFim = hoje()
 
-    // 🔹 salva corrida no IndexedDB
+    // 🔹 salva corrida no Firebase
     await addData(KEY, corrida)
 
     // 🔹 atualiza km do veículo

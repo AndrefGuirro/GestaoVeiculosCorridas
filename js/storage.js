@@ -1,82 +1,40 @@
-const DB_NAME = "motoGestorDB"
-const DB_VERSION = 1
+import { auth, db } from "./firebase.js"
+import { collection, doc, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js"
 
-let db = null
+const USERS_COLLECTION = "users"
 
-export function initDB(){
-
-  return new Promise((resolve, reject)=>{
-
-    const request = indexedDB.open(DB_NAME, DB_VERSION)
-
-    request.onerror = () => reject("Erro ao abrir banco")
-
-    request.onsuccess = () => {
-      db = request.result
-      resolve(db)
-    }
-
-    request.onupgradeneeded = (event)=>{
-      db = event.target.result
-
-      if(!db.objectStoreNames.contains("veiculos")){
-        db.createObjectStore("veiculos", { keyPath:"id" })
-      }
-
-      if(!db.objectStoreNames.contains("corridas")){
-        db.createObjectStore("corridas", { keyPath:"id" })
-      }
-
-      if(!db.objectStoreNames.contains("manutencoes")){
-        db.createObjectStore("manutencoes", { keyPath:"id" })
-      }
-
-      if(!db.objectStoreNames.contains("abastecimentos")){
-        db.createObjectStore("abastecimentos", { keyPath:"id" })
-      }
-    }
-
-  })
+function getUserId(){
+  const user = auth.currentUser
+  if(!user) throw new Error("Usuário não autenticado")
+  return user.uid
 }
 
-export function addData(storeName, data){
-
-  return new Promise((resolve, reject)=>{
-
-    const transaction = db.transaction(storeName, "readwrite")
-    const store = transaction.objectStore(storeName)
-
-    const request = store.add(data)
-
-    request.onsuccess = ()=> resolve(true)
-    request.onerror = ()=> reject("Erro ao adicionar")
-  })
+function userDocRef(){
+  return doc(db, USERS_COLLECTION, getUserId())
 }
 
-export function getAll(storeName){
-
-  return new Promise((resolve, reject)=>{
-
-    const transaction = db.transaction(storeName, "readonly")
-    const store = transaction.objectStore(storeName)
-
-    const request = store.getAll()
-
-    request.onsuccess = ()=> resolve(request.result)
-    request.onerror = ()=> reject("Erro ao buscar")
-  })
+function getCollectionRef(storeName){
+  return collection(userDocRef(), storeName)
 }
 
-export function updateData(storeName, data){
+export async function addData(storeName, data){
+  const ref = doc(getCollectionRef(storeName), data.id)
+  await setDoc(ref, data)
+  return true
+}
 
-  return new Promise((resolve, reject)=>{
+export async function getAll(storeName){
+  const snapshot = await getDocs(getCollectionRef(storeName))
+  return snapshot.docs.map(doc => doc.data())
+}
 
-    const transaction = db.transaction(storeName, "readwrite")
-    const store = transaction.objectStore(storeName)
+export async function updateData(storeName, data){
+  const ref = doc(getCollectionRef(storeName), data.id)
+  await setDoc(ref, data)
+  return true
+}
 
-    const request = store.put(data)
-
-    request.onsuccess = ()=> resolve(true)
-    request.onerror = ()=> reject("Erro ao atualizar")
-  })
+export async function saveUserProfile(profile){
+  const ref = userDocRef()
+  await setDoc(ref, { profile, updatedAt: new Date().toISOString() }, { merge: true })
 }

@@ -1,23 +1,27 @@
 import { CorridaService } from "../services/corridaService.js"
 import { VeiculoService } from "../services/veiculoService.js"
+import { auth } from "../firebase.js"
 
-export async function renderDashboard(container){
-
+export async function renderDashboard(container) {
   const corridas = await CorridaService.listar()
   const veiculos = await VeiculoService.listar()
-
   const ativo = veiculos.find(v => v.ativo)
-
   const totalMes = corridas.reduce((s, c) => s + (c.valor || 0), 0)
+  const user = auth.currentUser
+  const contato = user?.phoneNumber || user?.email || "Usuário"
 
   container.innerHTML = `
-  
   <div class="card destaque">
     <h3>Ganhos do Mês</h3>
     <h1>R$ ${totalMes.toFixed(2)}</h1>
   </div>
 
   <div class="grid-2">
+    <div class="card">
+      <p>Usuário</p>
+      <strong>${contato}</strong>
+    </div>
+
     <div class="card">
       <p>Odômetro</p>
       <strong>${ativo?.kmAtual || 0} km</strong>
@@ -34,6 +38,5 @@ export async function renderDashboard(container){
       Nova Corrida
     </button>
   </div>
-  
   `
 }
