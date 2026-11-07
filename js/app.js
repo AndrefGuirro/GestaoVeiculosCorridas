@@ -2,10 +2,18 @@ import { auth, initFirebase, onAuthChange, signOutUser } from "./firebase.js"
 import { renderDashboard } from "./ui/dashboardUI.js"
 import { renderAuth } from "./ui/authUI.js"
 import { renderVeiculos } from "./ui/veiculosUI.js"
+import { iniciarTema } from "./theme.js"
+import { iniciarPWA } from "./pwa.js"
 
+const NOME_DO_APP = "Gestor de Veículos"
+
+const container = document.querySelector(".app-container")
 const app = document.getElementById("app")
 const nav = document.querySelector(".bottom-nav")
 const logoutBtn = document.getElementById("logoutBtn")
+
+iniciarTema(document.getElementById("themeToggle"))
+iniciarPWA(document.getElementById("installBtn"))
 
 const routes = {
   dashboard: renderDashboard,
@@ -49,9 +57,11 @@ async function navigate(page) {
     return navigate("login")
   }
 
+  container.classList.toggle("is-login", page === "login")
+
   if (page === "login") {
     setNavVisible(false)
-    document.getElementById("page-title").innerText = "Entrar"
+    document.getElementById("page-title").innerText = NOME_DO_APP
     await renderAuth(app, () => navigate("dashboard"))
     return
   }
@@ -82,4 +92,3 @@ initFirebase()
   .catch(err => {
     console.error(err)
   })
-

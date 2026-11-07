@@ -1,8 +1,35 @@
 :root {
   --primary:#6c4cff;
+  --primary-2:#8b5cf6;
   --secondary:#f4f2ff;
   --success:#22c55e;
   --danger:#ef4444;
   --warning:#f59e0b;
   --radius:16px;
+
+  /* modo claro (padrão) */
+  --bg:#f5f6fa;
+  --surface:#ffffff;
+  --text:#1f2430;
+  --muted:#6b7280;
+  --border:#e5e7eb;
+  --input-bg:#ffffff;
+  --link:#6c4cff;
+  --error:#b91c1c;
+  --shadow:0 4px 12px rgba(0,0,0,.05);
+  color-scheme: light;
+}
+
+/* modo escuro */
+:root[data-theme="dark"] {
+  --bg:#0f1117;
+  --surface:#1a1d27;
+  --text:#e8eaf0;
+  --muted:#9aa1b2;
+  --border:#2b3040;
+  --input-bg:#12151d;
+  --link:#a594ff;
+  --error:#f87171;
+  --shadow:0 4px 12px rgba(0,0,0,.4);
+  color-scheme: dark;
 }
