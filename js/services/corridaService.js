@@ -1,9 +1,24 @@
-import { addData, getAll, updateData } from "../storage.js"
+import { addData, getAll, getByDateRange, updateData } from "../storage.js"
+import { auth } from "../firebase.js"
+import { criarCorrida } from "../core/index.js"
 import { uuid, hoje } from "../utils.js"
 import { AppState } from "../state.js"
 import { VeiculoService } from "./veiculoService.js"
 
 const KEY = "corridas"
+
+// A corrida em andamento fica só neste aparelho (um por usuário)
+function chaveAtiva() {
+  return `corridaAtiva:${auth.currentUser?.uid}`
+}
+
+function lerAtiva() {
+  try {
+    return JSON.parse(localStorage.getItem(chaveAtiva()))
+  } catch {
+    return null
+  }
+}
 
 export const CorridaService = {
 
@@ -11,56 +26,66 @@ export const CorridaService = {
     return await getAll(KEY)
   },
 
-  iniciar(kmInicial) {
+  async listarPorPeriodo(inicio, fim) {
+    return await getByDateRange(KEY, "data", inicio, fim)
+  },
 
-    AppState.corridaAtiva = {
+  obterAtiva() {
+    return lerAtiva()
+  },
+
+  async iniciar(kmInicial) {
+    const veiculo = await VeiculoService.obterAtivo()
+    if (!veiculo) throw new Error("Cadastre e ative um veículo antes de iniciar uma corrida")
+    if (lerAtiva()) throw new Error("Já existe uma corrida em andamento")
+
+    const corrida = {
       id: uuid(),
-      veiculoId: AppState.veiculoAtivo.id,
-      kmInicial,
+      veiculoId: veiculo.id,
+      kmInicial: kmInicial ?? veiculo.kmAtual,
       dataInicio: hoje()
     }
 
-    localStorage.setItem(
-      "corridaAtiva",
-      JSON.stringify(AppState.corridaAtiva)
-    )
+    localStorage.setItem(chaveAtiva(), JSON.stringify(corrida))
+    AppState.corridaAtiva = corrida
+    return corrida
   },
 
   async finalizar(kmFinal, valor) {
+    const ativa = lerAtiva()
+    if (!ativa) throw new Error("Nenhuma corrida em andamento")
 
-    const corrida = JSON.parse(localStorage.getItem("corridaAtiva"))
-
-    if (!corrida) throw "Nenhuma corrida ativa"
-
-    if (kmFinal <= corrida.kmInicial)
-      throw "KM inválido"
-
-    corrida.kmFinal = kmFinal
-    corrida.valor = valor
-    corrida.distancia = kmFinal - corrida.kmInicial
+    // criarCorrida valida km e valor (lança erro se estiver errado)
+    const corrida = criarCorrida({
+      id: ativa.id,
+      veiculoId: ativa.veiculoId,
+      kmInicial: ativa.kmInicial,
+      kmFinal,
+      valor,
+      data: ativa.dataInicio
+    })
     corrida.dataFim = hoje()
 
-    // 🔹 salva corrida no Firebase
     await addData(KEY, corrida)
-
-    // 🔹 atualiza km do veículo
     await this.atualizarKmVeiculo(corrida)
 
-    localStorage.removeItem("corridaAtiva")
+    localStorage.removeItem(chaveAtiva())
+    AppState.corridaAtiva = null
+    return corrida
+  },
+
+  cancelar() {
+    localStorage.removeItem(chaveAtiva())
+    AppState.corridaAtiva = null
   },
 
   async atualizarKmVeiculo(corrida) {
-
     const lista = await VeiculoService.listar()
+    const veiculo = lista.find(v => v.id === corrida.veiculoId)
+    if (!veiculo) return
 
-    const v = lista.find(v => v.id === corrida.veiculoId)
-
-    if (!v) return
-
-    v.kmAtual = corrida.kmFinal
-
-    // 🔹 usa updateData agora (não existe mais Storage.save)
-    await updateData("veiculos", v)
+    veiculo.kmAtual = corrida.kmFinal
+    await updateData("veiculos", veiculo)
   }
 
 }

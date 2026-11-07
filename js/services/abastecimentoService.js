@@ -1,5 +1,5 @@
 import { addData, getAll } from "../storage.js"
-import { uuid } from "../utils.js"
+import { criarAbastecimento } from "../core/index.js"
 
 const KEY = "abastecimentos"
 
@@ -9,19 +9,18 @@ export const AbastecimentoService = {
     return await getAll(KEY)
   },
 
-  async criar({ veiculoId, km, litros, valor, cheio }) {
-
-    const abastecimento = {
-      id: uuid(),
+  async criar({ veiculoId, combustivel, kmReferencia, litros, valor, tanqueCheio = false }) {
+    const abastecimento = criarAbastecimento({
       veiculoId,
-      km,
+      combustivel,
+      kmReferencia,
       litros,
       valor,
-      cheio,
-      data: new Date()
-    }
+      tanqueCheio
+    })
 
     await addData(KEY, abastecimento)
+    return abastecimento
   }
 
 }

@@ -1,6 +1,7 @@
 import { auth, initFirebase, onAuthChange, signOutUser } from "./firebase.js"
 import { renderDashboard } from "./ui/dashboardUI.js"
 import { renderAuth } from "./ui/authUI.js"
+import { renderVeiculos } from "./ui/veiculosUI.js"
 
 const app = document.getElementById("app")
 const nav = document.querySelector(".bottom-nav")
@@ -8,7 +9,7 @@ const logoutBtn = document.getElementById("logoutBtn")
 
 const routes = {
   dashboard: renderDashboard,
-  veiculos: () => app.innerHTML = "<div class='card'>Tela Veículos</div>",
+  veiculos: renderVeiculos,
   corridas: () => app.innerHTML = "<div class='card'>Tela Corridas</div>",
   manutencao: () => app.innerHTML = "<div class='card'>Tela Manutenção</div>",
   combustivel: () => app.innerHTML = "<div class='card'>Tela Combustível</div>"

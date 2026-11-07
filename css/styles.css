@@ -105,11 +105,13 @@ html, body {
   font-size: 14px;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   padding: 12px 14px;
   border-radius: 10px;
   border: 1px solid #ddd;
-  font-size: 14px;
+  font-size: 16px;
+  background: white;
 }
 
 .auth-error {
@@ -144,5 +146,60 @@ html, body {
 .btn-secondary:hover,
 .btn-primary:hover {
   opacity: 0.95;
+}
+
+.auth-card .btn-secondary {
+  margin-top: 8px;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.muted {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 4px 0 0;
+}
+
+.lista-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lista-item strong {
+  display: block;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--success);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.btn-small {
+  padding: 8px 14px;
+  border: 1px solid var(--primary);
+  border-radius: 10px;
+  background: white;
+  color: var(--primary);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.estado-vazio {
+  text-align: center;
+  color: #6b7280;
+}
+
+.destaque .muted {
+  color: rgba(255, 255, 255, 0.85);
 }
 
