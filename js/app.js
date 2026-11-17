@@ -4,6 +4,7 @@ import { renderAuth } from "./ui/authUI.js"
 import { renderVeiculos } from "./ui/veiculosUI.js"
 import { renderCorridas } from "./ui/corridasUI.js"
 import { renderCombustivel } from "./ui/combustivelUI.js"
+import { renderManutencao } from "./ui/manutencaoUI.js"
 import { iniciarTema } from "./theme.js"
 import { iniciarPWA } from "./pwa.js"
 
@@ -21,7 +22,7 @@ const routes = {
   dashboard: renderDashboard,
   veiculos: renderVeiculos,
   corridas: renderCorridas,
-  manutencao: () => app.innerHTML = "<div class='card'>Tela Manutenção</div>",
+  manutencao: renderManutencao,
   combustivel: renderCombustivel
 }
 

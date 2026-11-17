@@ -1,7 +1,8 @@
 import { CorridaService } from "../services/corridaService.js"
 import { VeiculoService } from "../services/veiculoService.js"
+import { ManutencaoService } from "../services/manutencaoService.js"
 import { auth } from "../firebase.js"
-import { somarValores, periodoDoMes, ganhoPorKm } from "../core/index.js"
+import { somarValores, periodoDoMes, ganhoPorKm, situacaoManutencao } from "../core/index.js"
 import { esc, moeda, numero } from "../utils.js"
 
 function irPara(pagina) {
@@ -32,6 +33,33 @@ export async function renderDashboard(container) {
     </div>
   `
 
+  // Aviso de manutenção do veículo ativo. Se a busca falhar, o Início continua funcionando sem ele.
+  let alertaManutencao = ""
+  if (ativo) {
+    try {
+      const manutencoes = await ManutencaoService.listarDoVeiculo(ativo.id)
+      const situacoes = manutencoes.map(m => situacaoManutencao(m, ativo.kmAtual ?? 0))
+      const vencidas = situacoes.filter(s => s === "pendente").length
+      const proximas = situacoes.filter(s => s === "atencao").length
+
+      if (vencidas > 0 || proximas > 0) {
+        const texto = vencidas > 0
+          ? `${vencidas} manutenção(ões) vencida(s)${proximas > 0 ? ` e ${proximas} perto de vencer` : ""}`
+          : `${proximas} manutenção(ões) perto de vencer`
+
+        alertaManutencao = `
+          <div class="card alerta-manut${vencidas > 0 ? " vencida" : ""}" id="alertaManutencao">
+            <strong>${texto}</strong>
+            <p class="muted">${esc(ativo.nome)}</p>
+            <button type="button" id="verManutencao" class="btn-small">Ver manutenção</button>
+          </div>
+        `
+      }
+    } catch (e) {
+      console.warn("Não foi possível verificar as manutenções", e)
+    }
+  }
+
   container.innerHTML = `
   <div class="card destaque">
     <h3>Ganhos do Mês</h3>
@@ -40,6 +68,8 @@ export async function renderDashboard(container) {
   </div>
 
   ${aviso}
+
+  ${alertaManutencao}
 
   <div class="grid-2">
     <div class="card">
@@ -72,4 +102,5 @@ export async function renderDashboard(container) {
 
   container.querySelector("#novaCorrida").onclick = () => irPara("corridas")
   container.querySelector("#irVeiculos")?.addEventListener("click", () => irPara("veiculos"))
+  container.querySelector("#verManutencao")?.addEventListener("click", () => irPara("manutencao"))
 }

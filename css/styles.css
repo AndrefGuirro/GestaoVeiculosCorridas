@@ -390,6 +390,76 @@ button:disabled {
   font-size: 13px;
 }
 
+/* ---------- Manutenção ---------- */
+
+.badge-atencao {
+  background: var(--warning);
+}
+
+.badge-pendente {
+  background: var(--danger);
+}
+
+.badge-neutro {
+  background: var(--muted);
+}
+
+.manut-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.manut-topo strong {
+  font-size: 17px;
+}
+
+.restante {
+  margin: 8px 0 4px;
+  font-weight: 600;
+}
+
+.restante-pendente {
+  color: var(--danger);
+}
+
+.restante-atencao {
+  color: var(--warning);
+}
+
+.manut-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.manut-form {
+  width: 100%;
+}
+
+.manut-form .btn-secondary {
+  margin-top: 10px;
+}
+
+.btn-perigo {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.alerta-manut {
+  border-left: 5px solid var(--warning);
+}
+
+.alerta-manut.vencida {
+  border-left-color: var(--danger);
+}
+
+.alerta-manut .btn-small {
+  margin-top: 10px;
+}
+
 /* ---------- Tela de login ---------- */
 
 .auth-card {

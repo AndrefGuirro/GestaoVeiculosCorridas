@@ -1,5 +1,5 @@
 import { auth, db } from "./firebase.js"
-import { collection, doc, getDocs, setDoc, query, where } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js"
+import { collection, doc, getDocs, setDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js"
 
 // Estrutura no Firestore:
 //   users/{uid}                      -> perfil do usuário
@@ -57,6 +57,11 @@ export async function getByField(storeName, campo, valor){
 export async function updateData(storeName, data){
   const ref = doc(getCollectionRef(storeName), data.id)
   await setDoc(ref, data)
+  return true
+}
+
+export async function deleteData(storeName, id){
+  await deleteDoc(doc(getCollectionRef(storeName), id))
   return true
 }
 

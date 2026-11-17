@@ -37,6 +37,11 @@ export function dataHora(iso){
   })
 }
 
+// "06/11/2026"
+export function dataCurta(iso){
+  return new Date(iso).toLocaleDateString("pt-BR")
+}
+
 // "22:35"
 export function hora(iso){
   return new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
