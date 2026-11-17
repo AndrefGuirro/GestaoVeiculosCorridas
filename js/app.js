@@ -3,6 +3,7 @@ import { renderDashboard } from "./ui/dashboardUI.js"
 import { renderAuth } from "./ui/authUI.js"
 import { renderVeiculos } from "./ui/veiculosUI.js"
 import { renderCorridas } from "./ui/corridasUI.js"
+import { renderCombustivel } from "./ui/combustivelUI.js"
 import { iniciarTema } from "./theme.js"
 import { iniciarPWA } from "./pwa.js"
 
@@ -21,7 +22,7 @@ const routes = {
   veiculos: renderVeiculos,
   corridas: renderCorridas,
   manutencao: () => app.innerHTML = "<div class='card'>Tela Manutenção</div>",
-  combustivel: () => app.innerHTML = "<div class='card'>Tela Combustível</div>"
+  combustivel: renderCombustivel
 }
 
 document.querySelectorAll("[data-page]")

@@ -359,6 +359,37 @@ button:disabled {
   font-size: 18px;
 }
 
+/* ---------- Combustível ---------- */
+
+.aviso-ok {
+  margin: 8px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(34, 197, 94, 0.14);
+  color: var(--text);
+  border: 1px solid var(--success);
+  font-size: 14px;
+}
+
+.check-linha {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 2px;
+  cursor: pointer;
+}
+
+.check-linha input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--primary);
+}
+
+.dica {
+  margin: 4px 0 14px;
+  font-size: 13px;
+}
+
 /* ---------- Tela de login ---------- */
 
 .auth-card {

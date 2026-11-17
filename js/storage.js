@@ -47,6 +47,13 @@ export async function getByDateRange(storeName, campo, inicio, fim){
   return snapshot.docs.map(doc => doc.data())
 }
 
+// Busca os registros em que um campo é igual a um valor (ex.: todos os abastecimentos de um veículo)
+export async function getByField(storeName, campo, valor){
+  const q = query(getCollectionRef(storeName), where(campo, "==", valor))
+  const snapshot = await getDocs(q)
+  return snapshot.docs.map(doc => doc.data())
+}
+
 export async function updateData(storeName, data){
   const ref = doc(getCollectionRef(storeName), data.id)
   await setDoc(ref, data)
