@@ -39,10 +39,13 @@ export const CorridaService = {
     if (!veiculo) throw new Error("Cadastre e ative um veículo antes de iniciar uma corrida")
     if (lerAtiva()) throw new Error("Já existe uma corrida em andamento")
 
+    const km = kmInicial ?? veiculo.kmAtual
+    if (!(km >= 0)) throw new Error("KM inicial inválido")
+
     const corrida = {
       id: uuid(),
       veiculoId: veiculo.id,
-      kmInicial: kmInicial ?? veiculo.kmAtual,
+      kmInicial: km,
       dataInicio: hoje()
     }
 

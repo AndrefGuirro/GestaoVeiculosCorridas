@@ -26,3 +26,24 @@ export function numero(valor, casas = 0){
     maximumFractionDigits: casas
   })
 }
+
+// "06/11, 22:35"
+export function dataHora(iso){
+  return new Date(iso).toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  })
+}
+
+// "22:35"
+export function hora(iso){
+  return new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+}
+
+// "Novembro de 2026"
+export function mesAno(data){
+  const texto = data.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
+  return texto.charAt(0).toUpperCase() + texto.slice(1)
+}

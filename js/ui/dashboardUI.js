@@ -65,7 +65,7 @@ export async function renderDashboard(container) {
 
   <div class="card">
     <button id="novaCorrida" class="btn-primary">
-      Nova Corrida
+      ${CorridaService.obterAtiva() ? "Continuar corrida em andamento" : "Nova Corrida"}
     </button>
   </div>
   `

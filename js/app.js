@@ -2,6 +2,7 @@ import { auth, initFirebase, onAuthChange, signOutUser } from "./firebase.js"
 import { renderDashboard } from "./ui/dashboardUI.js"
 import { renderAuth } from "./ui/authUI.js"
 import { renderVeiculos } from "./ui/veiculosUI.js"
+import { renderCorridas } from "./ui/corridasUI.js"
 import { iniciarTema } from "./theme.js"
 import { iniciarPWA } from "./pwa.js"
 
@@ -18,7 +19,7 @@ iniciarPWA(document.getElementById("installBtn"))
 const routes = {
   dashboard: renderDashboard,
   veiculos: renderVeiculos,
-  corridas: () => app.innerHTML = "<div class='card'>Tela Corridas</div>",
+  corridas: renderCorridas,
   manutencao: () => app.innerHTML = "<div class='card'>Tela Manutenção</div>",
   combustivel: () => app.innerHTML = "<div class='card'>Tela Combustível</div>"
 }

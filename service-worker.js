@@ -3,7 +3,7 @@
 // (os dados do Firestore continuam precisando de conexão).
 //
 // Quando mudar muita coisa no app, aumente a VERSAO para limpar o cache antigo.
-const VERSAO = "v1"
+const VERSAO = "v2"
 const CACHE = `gestor-veiculos-${VERSAO}`
 
 const ARQUIVOS = [
@@ -36,7 +36,8 @@ const ARQUIVOS = [
   "js/services/abastecimentoService.js",
   "js/ui/authUI.js",
   "js/ui/dashboardUI.js",
-  "js/ui/veiculosUI.js"
+  "js/ui/veiculosUI.js",
+  "js/ui/corridasUI.js"
 ]
 
 self.addEventListener("install", event => {
