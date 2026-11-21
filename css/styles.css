@@ -314,6 +314,105 @@ button:disabled {
   font-weight: 600;
 }
 
+/* ---------- Início: barra, ganhos/gastos, botões e lista de veículos ---------- */
+
+.usuario-barra {
+  font-size:11px;
+  color:var(--muted);
+  max-width:72px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.destaque-colunas {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.destaque-colunas > div + div {
+  border-left:1px solid rgba(255,255,255,.3);
+  padding-left:12px;
+}
+
+.destaque h1 {
+  font-size:24px;
+  margin:4px 0;
+}
+
+.rotulo {
+  display:block;
+  color:var(--muted);
+  font-size:13px;
+}
+
+.card-botao {
+  border:none;
+  text-align:left;
+  font:inherit;
+  color:var(--text);
+  cursor:pointer;
+}
+
+.btn-abastecer {
+  background:var(--primary);
+  color:white;
+  font-weight:700;
+  text-align:center;
+}
+
+.folha-fundo {
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  z-index:50;
+}
+
+.folha {
+  background:var(--surface);
+  color:var(--text);
+  border-radius:20px 20px 0 0;
+  width:100%;
+  max-width:480px;
+  max-height:80vh;
+  overflow-y:auto;
+  padding:16px 16px calc(16px + env(safe-area-inset-bottom));
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.folha .auth-error:empty {
+  display:none;
+}
+
+.folha-item {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  text-align:left;
+  font:inherit;
+  color:var(--text);
+  background:var(--input-bg);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px;
+  cursor:pointer;
+}
+
+.folha-item.ativo {
+  border-color:var(--primary);
+}
+
+.folha-item small {
+  display:block;
+  color:var(--muted);
+}
+
 /* ---------- Corridas ---------- */
 
 .card-andamento {

@@ -14,6 +14,7 @@ const container = document.querySelector(".app-container")
 const app = document.getElementById("app")
 const nav = document.querySelector(".bottom-nav")
 const logoutBtn = document.getElementById("logoutBtn")
+const usuarioBarra = document.getElementById("usuarioBarra")
 
 iniciarTema(document.getElementById("themeToggle"))
 iniciarPWA(document.getElementById("installBtn"))
@@ -47,14 +48,22 @@ const titles = {
   combustivel: "Combustível"
 }
 
+// Mostra ou esconde o menu de baixo (some na tela de login)
 function setNavVisible(visible) {
   nav.style.display = visible ? "flex" : "none"
 }
 
-function updateLogoutVisibility() {
+// Atualiza a barra de cima: botão Sair e o usuário (parte do e-mail antes do @).
+// Fora do login aparecem os dois; sem ninguém logado ficam escondidos.
+function atualizarBarra() {
+  const email = auth.currentUser?.email
   logoutBtn.style.display = auth.currentUser ? "inline-flex" : "none"
+  usuarioBarra.hidden = !email
+  usuarioBarra.textContent = email ? email.split("@")[0] : ""
+  usuarioBarra.title = email || ""
 }
 
+// Troca de tela: confere o login, desenha a tela pedida e marca o botão do menu
 async function navigate(page) {
   if (page !== "login" && !auth.currentUser) {
     return navigate("login")
@@ -84,7 +93,7 @@ async function navigate(page) {
 initFirebase()
   .then(() => {
     onAuthChange(user => {
-      updateLogoutVisibility()
+      atualizarBarra()
       if (user) {
         navigate("dashboard")
       } else {
