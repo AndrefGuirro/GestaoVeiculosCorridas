@@ -67,3 +67,13 @@ export function realizarManutencao(manutencao, { km, valor = null, data = new Da
     dataUltima: data
   }
 }
+
+// Monta um registro do histórico: cada vez que uma manutenção é feita fica guardado (km, valor e data),
+// mesmo que depois o item seja refeito ou excluído
+export function criarServico({ veiculoId, manutencaoId, tipo, km, valor = 0, data = new Date().toISOString() }) {
+  if (!veiculoId) throw new Error("Escolha um veículo")
+  if (!Number.isFinite(km) || km < 0) throw new Error("KM inválido")
+  if (!Number.isFinite(valor) || valor < 0) throw new Error("Valor inválido")
+
+  return { id: crypto.randomUUID(), veiculoId, manutencaoId, tipo, km, valor, data }
+}

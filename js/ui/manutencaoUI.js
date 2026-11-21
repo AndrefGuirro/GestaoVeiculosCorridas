@@ -1,7 +1,7 @@
 import { ManutencaoService } from "../services/manutencaoService.js"
 import { VeiculoService } from "../services/veiculoService.js"
-import { kmRestantes, situacaoManutencao } from "../core/index.js"
-import { esc, moeda, numero, dataCurta } from "../utils.js"
+import { kmRestantes, situacaoManutencao, somarValores, periodoDoMes } from "../core/index.js"
+import { esc, moeda, numero, dataCurta, dataHora, mesAno } from "../utils.js"
 
 const SUGESTOES = [
   "Troca de óleo",
@@ -107,6 +107,21 @@ function itemManutencao(m, kmAtual) {
   `
 }
 
+// Uma linha do histórico: o que foi feito, quando, em que veículo, km e valor
+function itemHistorico(servico, veiculos) {
+  const veiculo = veiculos.find(v => v.id === servico.veiculoId)
+
+  return `
+    <div class="card lista-item">
+      <div>
+        <strong class="valor-corrida">${esc(servico.tipo)}</strong>
+        <p class="muted">${dataHora(servico.data)} · ${esc(veiculo?.nome || "Veículo removido")}</p>
+        <p class="muted">${numero(servico.km)} km · ${servico.valor > 0 ? moeda(servico.valor) : "sem valor"}</p>
+      </div>
+    </div>
+  `
+}
+
 // Troca os botões do cartão por um pequeno formulário (km em que foi feita e valor gasto)
 function abrirRealizacao(cartao, manutencao, ativo, recarregar) {
   const acoes = cartao.querySelector(".manut-acoes")
@@ -152,9 +167,19 @@ function abrirRealizacao(cartao, manutencao, ativo, recarregar) {
   }
 }
 
-export async function renderManutencao(container, aviso = "") {
-  const veiculos = await VeiculoService.listar()
+// Desenha a tela Manutenção: cadastro, itens do veículo ativo e histórico do mês de toda a frota
+export async function renderManutencao(container, aviso = "", referencia = new Date()) {
+  const { inicio, fim } = periodoDoMes(referencia)
+  const [veiculos, historico] = await Promise.all([
+    VeiculoService.listar(),
+    ManutencaoService.listarHistoricoPorPeriodo(inicio, fim)
+  ])
   const ativo = veiculos.find(v => v.ativo)
+
+  const agora = new Date()
+  const ehMesAtual = referencia.getFullYear() === agora.getFullYear()
+    && referencia.getMonth() === agora.getMonth()
+  const recentes = [...historico].sort((a, b) => b.data.localeCompare(a.data))
 
   // Só as manutenções do veículo ativo (leitura menor no Firestore)
   const manutencoes = ativo ? await ManutencaoService.listarDoVeiculo(ativo.id) : []
@@ -176,9 +201,31 @@ export async function renderManutencao(container, aviso = "") {
     ${ativo ? (ordenadas.length === 0
       ? `<div class="card estado-vazio">Nenhuma manutenção cadastrada para este veículo.</div>`
       : ordenadas.map(m => itemManutencao(m, kmAtual)).join("")) : ""}
+
+    <div class="card">
+      <div class="mes-nav">
+        <button type="button" id="mesAnterior" class="btn-small" aria-label="Mês anterior">‹</button>
+        <strong>${esc(mesAno(referencia))}</strong>
+        <button type="button" id="mesSeguinte" class="btn-small" aria-label="Próximo mês"
+                ${ehMesAtual ? "disabled" : ""}>›</button>
+      </div>
+      <div class="resumo-mes">
+        <div><strong>${moeda(somarValores(historico, "valor"))}</strong><span>Gasto</span></div>
+        <div><strong>${historico.length}</strong><span>Serviços</span></div>
+      </div>
+    </div>
+
+    ${recentes.length === 0
+      ? `<div class="card estado-vazio">Nenhuma manutenção registrada neste mês.</div>`
+      : recentes.map(h => itemHistorico(h, veiculos)).join("")}
   `
 
-  const recarregar = (mensagem = "") => renderManutencao(container, mensagem)
+  container.querySelector("#mesAnterior").onclick = () =>
+    renderManutencao(container, "", new Date(referencia.getFullYear(), referencia.getMonth() - 1, 1))
+  container.querySelector("#mesSeguinte").onclick = () =>
+    renderManutencao(container, "", new Date(referencia.getFullYear(), referencia.getMonth() + 1, 1))
+
+  const recarregar = (mensagem = "") => renderManutencao(container, mensagem, mensagem ? new Date() : referencia)
 
   container.querySelector("#irVeiculos")?.addEventListener("click", () => irPara("veiculos"))
 

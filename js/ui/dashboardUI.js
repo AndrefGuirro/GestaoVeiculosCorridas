@@ -2,7 +2,7 @@ import { CorridaService } from "../services/corridaService.js"
 import { VeiculoService } from "../services/veiculoService.js"
 import { ManutencaoService } from "../services/manutencaoService.js"
 import { AbastecimentoService } from "../services/abastecimentoService.js"
-import { somarValores, periodoDoMes, ganhoPorKm, situacaoManutencao, filtrarPorPeriodo } from "../core/index.js"
+import { somarValores, periodoDoMes, ganhoPorKm, situacaoManutencao } from "../core/index.js"
 import { abrirSeletorVeiculo } from "./seletorVeiculo.js"
 import { esc, moeda, numero } from "../utils.js"
 
@@ -47,14 +47,21 @@ export async function renderDashboard(container) {
   const corridas = corridasMes.filter(c => c.veiculoId === ativo?.id)
   const abastecimentos = abastecimentosMes.filter(a => a.veiculoId === ativo?.id)
 
-  // Manutenção: se a busca falhar, o Início continua funcionando e os gastos aparecem como "—"
+  // Manutenções (para o aviso) e histórico do mês (para os gastos).
+  // Se alguma busca falhar, o Início continua funcionando; sem o histórico os gastos aparecem como "—"
   let manutencoes = []
+  let servicos = []
   let falhou = false
   if (ativo) {
     try {
       manutencoes = await ManutencaoService.listarDoVeiculo(ativo.id)
     } catch (erro) {
       console.warn("Não foi possível buscar as manutenções", erro)
+    }
+    try {
+      servicos = (await ManutencaoService.listarHistoricoPorPeriodo(inicio, fim)).filter(s => s.veiculoId === ativo.id)
+    } catch (erro) {
+      console.warn("Não foi possível buscar o histórico de manutenções", erro)
       falhou = true
     }
   }
@@ -64,7 +71,7 @@ export async function renderDashboard(container) {
   const porKm = ganhoPorKm(ganhos, km)
 
   const gastoCombustivel = somarValores(abastecimentos, "valor")
-  const gastoManutencao = somarValores(filtrarPorPeriodo(manutencoes, inicio, fim, "dataUltima"), "valor")
+  const gastoManutencao = somarValores(servicos, "valor")
   const gastos = gastoCombustivel + gastoManutencao
 
   const semVeiculo = ativo ? "" : `
@@ -92,7 +99,7 @@ export async function renderDashboard(container) {
 
   ${semVeiculo}
 
-  ${ativo && !falhou ? montarAviso(ativo, manutencoes) : ""}
+  ${ativo ? montarAviso(ativo, manutencoes) : ""}
 
   <div class="grid-2">
     <div class="card">
