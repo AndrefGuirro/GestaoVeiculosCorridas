@@ -7,6 +7,7 @@ import { renderCombustivel } from "./ui/combustivelUI.js"
 import { renderManutencao } from "./ui/manutencaoUI.js"
 import { iniciarTema } from "./theme.js"
 import { iniciarPWA } from "./pwa.js"
+import { montarCafe } from "./cafe.js"
 
 const NOME_DO_APP = "Gestor de Veículos"
 
@@ -18,6 +19,7 @@ const usuarioBarra = document.getElementById("usuarioBarra")
 
 iniciarTema(document.getElementById("themeToggle"))
 iniciarPWA(document.getElementById("installBtn"))
+montarCafe(document.getElementById("cafe"), { chave: "18997027699" })
 
 const routes = {
   dashboard: renderDashboard,

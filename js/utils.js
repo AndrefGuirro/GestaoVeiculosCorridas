@@ -52,3 +52,19 @@ export function mesAno(data){
   const texto = data.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
   return texto.charAt(0).toUpperCase() + texto.slice(1)
 }
+
+// Data no formato do campo <input type="date"> ("2026-11-24"), no fuso do aparelho
+export function paraInputData(iso){
+  const d = new Date(iso)
+  const dois = n => String(n).padStart(2, "0")
+  return `${d.getFullYear()}-${dois(d.getMonth() + 1)}-${dois(d.getDate())}`
+}
+
+// Devolve a data original se o dia não mudou; se mudou, usa o novo dia ao meio-dia (evita virar o dia por fuso)
+export function novaData(original, texto){
+  if (texto === paraInputData(original)) return original
+  const [ano, mes, dia] = String(texto).split("-").map(Number)
+  const nova = new Date(ano, mes - 1, dia, 12)
+  if (!ano || isNaN(nova)) throw new Error("Data inválida")
+  return nova.toISOString()
+}

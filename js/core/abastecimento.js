@@ -62,3 +62,8 @@ export function calcularMediaTanqueCheio(abastecimentos) {
 
   return km / litros
 }
+
+// Aplica as mudanças num abastecimento já existente e valida tudo de novo (mantém id e veículo)
+export function editarAbastecimento(original, campos) {
+  return criarAbastecimento({ ...original, ...campos, id: original.id, veiculoId: original.veiculoId })
+}

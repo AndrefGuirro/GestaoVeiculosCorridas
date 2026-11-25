@@ -1,5 +1,5 @@
 import { addData, getAll, getByField, getByDateRange, updateData, deleteData } from "../storage.js"
-import { criarManutencao, realizarManutencao, criarServico } from "../core/index.js"
+import { criarManutencao, realizarManutencao, criarServico, editarServico } from "../core/index.js"
 import { VeiculoService } from "./veiculoService.js"
 import { AppState } from "../state.js"
 
@@ -26,48 +26,76 @@ export const ManutencaoService = {
     return await getByDateRange(HISTORICO, "data", inicio, fim)
   },
 
-  // Cadastra o item de manutenção e já registra no histórico a primeira vez em que foi feita
+  // O odômetro do veículo só avança (um km menor que o atual não o diminui)
+  async avancarOdometro(veiculoId, km) {
+    const veiculos = await VeiculoService.listar()
+    const veiculo = veiculos.find(v => v.id === veiculoId)
+    if (!veiculo || !(km > (veiculo.kmAtual || 0))) return
+
+    veiculo.kmAtual = km
+    await updateData("veiculos", veiculo)
+    if (veiculo.ativo) AppState.veiculoAtivo = veiculo
+  },
+
+  // Registra uma manutenção feita. Se o veículo já tem um item com esse nome, o ciclo dele recomeça
+  // a partir do km informado; se não tem, o item é criado. A vez fica sempre guardada no histórico.
   async criar({ veiculoId, tipo, valor = 0, kmReferencia = 0, intervaloKm = null }) {
-    const manutencao = criarManutencao({ veiculoId, tipo, valor, kmReferencia, intervaloKm })
+    const novo = criarManutencao({ veiculoId, tipo, valor, kmReferencia, intervaloKm })
+    const existentes = await this.listarDoVeiculo(veiculoId)
+    const antigo = existentes.find(m => m.tipo.toLowerCase() === novo.tipo.toLowerCase())
+
+    // Sem intervalo informado, mantém o que o item já tinha
+    const item = antigo
+      ? { ...realizarManutencao(antigo, { km: kmReferencia, valor }), intervaloKm: intervaloKm ?? antigo.intervaloKm }
+      : novo
+
     const servico = criarServico({
       veiculoId,
-      manutencaoId: manutencao.id,
-      tipo: manutencao.tipo,
+      manutencaoId: item.id,
+      tipo: item.tipo,
       km: kmReferencia,
       valor,
-      data: manutencao.dataUltima
+      data: item.dataUltima
     })
-    await addData(KEY, manutencao)
+
     await addData(HISTORICO, servico)
-    return manutencao
+    await addData(KEY, item)
+    await this.avancarOdometro(veiculoId, kmReferencia)
+    return item
   },
 
-  // Ao realizar a manutenção, o ciclo recomeça a partir do km informado e a vez fica registrada no histórico.
-  // Se esse km for maior que o do odômetro, o odômetro do veículo avança junto.
-  async marcarRealizada(manutencao, { km, valor = null }) {
-    const atualizada = realizarManutencao(manutencao, { km, valor })
-    const servico = criarServico({
-      veiculoId: manutencao.veiculoId,
-      manutencaoId: manutencao.id,
-      tipo: manutencao.tipo,
-      km,
-      valor: valor ?? 0,
-      data: atualizada.dataUltima
-    })
-    await addData(HISTORICO, servico)
-    await updateData(KEY, atualizada)
+  // Deixa o item igual ao registro mais recente do histórico (km, valor, data e nome).
+  // Sem nenhum registro sobrando, o item também é apagado.
+  async sincronizarItem(manutencaoId) {
+    const itens = await getAll(KEY)
+    const item = itens.find(m => m.id === manutencaoId)
+    if (!item) return
 
-    const veiculos = await VeiculoService.listar()
-    const veiculo = veiculos.find(v => v.id === manutencao.veiculoId)
-    if (veiculo && km > (veiculo.kmAtual || 0)) {
-      veiculo.kmAtual = km
-      await updateData("veiculos", veiculo)
-      if (veiculo.ativo) AppState.veiculoAtivo = veiculo
-    }
+    const registros = (await getByField(HISTORICO, "manutencaoId", manutencaoId))
+      .sort((a, b) => b.data.localeCompare(a.data) || b.km - a.km)
 
-    return atualizada
+    if (registros.length === 0) return await deleteData(KEY, manutencaoId)
+
+    const ultimo = registros[0]
+    await updateData(KEY, { ...item, tipo: ultimo.tipo, kmReferencia: ultimo.km, valor: ultimo.valor, dataUltima: ultimo.data })
   },
 
+  // Corrige um registro do histórico e acerta o item e o odômetro
+  async editarServico(servico, campos) {
+    const atualizado = editarServico(servico, campos)
+    await updateData(HISTORICO, atualizado)
+    await this.sincronizarItem(servico.manutencaoId)
+    await this.avancarOdometro(servico.veiculoId, atualizado.km)
+    return atualizado
+  },
+
+  // Apaga um registro do histórico e acerta o item
+  async excluirServico(servico) {
+    await deleteData(HISTORICO, servico.id)
+    await this.sincronizarItem(servico.manutencaoId)
+  },
+
+  // Apaga só o item da lista de controle; o histórico continua guardado
   async excluir(id) {
     await deleteData(KEY, id)
   }

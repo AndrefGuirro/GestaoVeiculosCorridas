@@ -77,3 +77,13 @@ export function criarServico({ veiculoId, manutencaoId, tipo, km, valor = 0, dat
 
   return { id: crypto.randomUUID(), veiculoId, manutencaoId, tipo, km, valor, data }
 }
+
+// Aplica as mudanças num registro do histórico e valida tudo de novo (mantém id, veículo e item)
+export function editarServico(original, { tipo, km, valor, data }) {
+  const tipoLimpo = (tipo || "").trim()
+  if (!tipoLimpo) throw new Error("Tipo de manutenção obrigatório")
+  return {
+    ...criarServico({ veiculoId: original.veiculoId, manutencaoId: original.manutencaoId, tipo: tipoLimpo, km, valor, data }),
+    id: original.id
+  }
+}
