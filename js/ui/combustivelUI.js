@@ -1,7 +1,8 @@
 import { AbastecimentoService } from "../services/abastecimentoService.js"
 import { VeiculoService } from "../services/veiculoService.js"
 import { TIPOS_ABASTECIMENTO, somarValores, periodoDoMes } from "../core/index.js"
-import { esc, moeda, numero, dataHora, mesAno } from "../utils.js"
+import { abrirEdicao } from "./edicao.js"
+import { esc, moeda, numero, dataHora, mesAno, paraInputData, novaData } from "../utils.js"
 
 function irPara(pagina) {
   document.querySelector(`[data-page="${pagina}"]`)?.click()
@@ -69,12 +70,14 @@ function painelNovo(ativo, aviso) {
   `
 }
 
+// Um abastecimento da lista, com a caneta discreta para editar ou excluir
 function itemAbastecimento(a, veiculos) {
   const veiculo = veiculos.find(v => v.id === a.veiculoId)
   const porLitro = a.litros > 0 ? a.valor / a.litros : null
 
   return `
-    <div class="card lista-item">
+    <div class="card lista-item" data-id="${esc(a.id)}">
+      <button type="button" class="btn-editar" data-editar aria-label="Editar" title="Editar">✎</button>
       <div>
         <strong class="valor-corrida">${moeda(a.valor)}</strong>
         <p class="muted">${dataHora(a.data)} · ${esc(veiculo?.nome || "Veículo removido")}</p>
@@ -136,6 +139,35 @@ export async function renderCombustivel(container, referencia = new Date(), avis
 
   container.querySelector("#mesSeguinte").onclick = () =>
     renderCombustivel(container, new Date(referencia.getFullYear(), referencia.getMonth() + 1, 1))
+
+  // Caneta do cartão: abre a edição do abastecimento (salvar, excluir ou cancelar)
+  container.querySelectorAll(".lista-item[data-id]").forEach(cartao => {
+    const abastecimento = ordenados.find(a => a.id === cartao.dataset.id)
+    const veiculo = veiculos.find(v => v.id === abastecimento.veiculoId)
+    const combustiveis = veiculo ? combustiveisDoVeiculo(veiculo) : TIPOS_ABASTECIMENTO
+    const recarregar = () => renderCombustivel(container, referencia)
+
+    cartao.querySelector("[data-editar]").onclick = () =>
+      abrirEdicao(cartao, [
+        { nome: "data", rotulo: "Data", tipo: "date", valor: paraInputData(abastecimento.data) },
+        { nome: "kmReferencia", rotulo: "KM do odômetro", tipo: "number", valor: abastecimento.kmReferencia, atributos: 'min="0" step="1" inputmode="numeric"' },
+        { nome: "combustivel", rotulo: "Combustível", tipo: "select", valor: abastecimento.combustivel, opcoes: [...new Set([...combustiveis, abastecimento.combustivel])] },
+        { nome: "litros", rotulo: "Litros", tipo: "number", valor: abastecimento.litros, atributos: 'min="0.01" step="0.01" inputmode="decimal"' },
+        { nome: "valor", rotulo: "Valor total (R$)", tipo: "number", valor: abastecimento.valor, atributos: 'min="0.01" step="0.01" inputmode="decimal"' },
+        { nome: "tanqueCheio", rotulo: "Enchi o tanque até o fim", tipo: "checkbox", valor: abastecimento.tanqueCheio }
+      ], {
+        textoExcluir: "Excluir este abastecimento? Isso não pode ser desfeito.",
+        aoCancelar: recarregar,
+        aoSalvar: async valores => {
+          await AbastecimentoService.editar(abastecimento, { ...valores, data: novaData(abastecimento.data, valores.data) })
+          await recarregar()
+        },
+        aoExcluir: async () => {
+          await AbastecimentoService.excluir(abastecimento)
+          await recarregar()
+        }
+      })
+  })
 
   const form = container.querySelector("#formAbastecimento")
   if (!form) return
